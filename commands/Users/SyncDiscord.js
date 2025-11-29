@@ -4,18 +4,18 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Ensure data directory exists
+
 const dataDir = path.join(__dirname, '../data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Initialize SQLite database for synced users
+
 const db = new sqlite3.Database(path.join(dataDir, 'config.db'), (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    // Create synced users table
+    
     db.run(`CREATE TABLE IF NOT EXISTS synced_users (
       guild_id TEXT NOT NULL,
       discord_id TEXT NOT NULL,
@@ -41,7 +41,7 @@ module.exports = {
     const discordId = interaction.user.id;
     const discordUsername = interaction.user.username;
 
-    // Get API configuration
+    
     const config = await getConfig(guildId);
 
     if (!config) {
@@ -59,7 +59,7 @@ module.exports = {
       return;
     }
 
-    // Fetch all users from API
+    
     const result = await fetchAllUsers(config.api_url, config.api_key);
 
     if (!result.success) {
@@ -74,11 +74,11 @@ module.exports = {
       return;
     }
 
-    // Find user with matching Discord ID
+    
     const matchedUser = result.users.find(user => user.discord_id === discordId);
 
     if (!matchedUser) {
-      // Get the API URL from the config
+      
       const apiUrl = config ? config.api_url : 'https://market.dezerx.com';
 
       const errorEmbed = new EmbedBuilder()
@@ -99,17 +99,17 @@ module.exports = {
       return;
     }
 
-    // Save synced user to database
+    
     await saveSyncedUser(guildId, discordId, matchedUser.id, matchedUser.admin_role?.name || 'user');
 
-    // Determine role emoji
+    
     const roleEmoji = matchedUser.admin_role?.name === 'superadmin' ? '⭐' :
       matchedUser.admin_role?.name === 'admin' ? '👑' :
         matchedUser.admin_role?.name === 'moderator' ? '🛡️' : '👤';
 
     const isAdmin = matchedUser.admin_role?.name === 'superadmin' || matchedUser.admin_role?.name === 'admin';
 
-    // Success embed
+    
     const successEmbed = new EmbedBuilder()
       .setColor('#00ff00')
       .setTitle('✅ Discord Account Synced')
@@ -137,14 +137,14 @@ module.exports = {
   }
 };
 
-// Fetch all users from API
+
 async function fetchAllUsers(apiUrl, apiKey) {
   try {
     let allUsers = [];
     let currentPage = 1;
     let lastPage = 1;
 
-    // Fetch all pages
+    
     do {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -192,7 +192,7 @@ async function fetchAllUsers(apiUrl, apiKey) {
   }
 }
 
-// Save synced user to database
+
 function saveSyncedUser(guildId, discordId, userId, role) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -211,7 +211,7 @@ function saveSyncedUser(guildId, discordId, userId, role) {
   });
 }
 
-// Get synced user from database
+
 function getSyncedUser(guildId, discordId) {
   return new Promise((resolve, reject) => {
     db.get(
@@ -225,13 +225,13 @@ function getSyncedUser(guildId, discordId) {
   });
 }
 
-// Check if user is admin
+
 async function isUserAdmin(guildId, discordId) {
   const syncedUser = await getSyncedUser(guildId, discordId);
   if (!syncedUser) return false;
   return syncedUser.role === 'superadmin' || syncedUser.role === 'superadmin';
 }
 
-// Export helper functions
+
 module.exports.getSyncedUser = getSyncedUser;
 module.exports.isUserAdmin = isUserAdmin;

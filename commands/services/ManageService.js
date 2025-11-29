@@ -33,7 +33,7 @@ module.exports = {
     const userEmail = interaction.options.getString('user_email');
     const status = interaction.options.getString('status');
 
-    // Check if user is admin
+    
     const { isUserAdmin } = require('../Users/SyncDiscord.js');
     const isAdmin = await isUserAdmin(guildId, discordId);
 
@@ -52,7 +52,7 @@ module.exports = {
       return;
     }
 
-    // Get API configuration
+    
     const config = await getConfig(guildId);
 
     if (!config) {
@@ -66,7 +66,7 @@ module.exports = {
       return;
     }
 
-    // Fetch services
+    
     const result = await getServices(config.api_url, config.api_key, 1, userEmail, status);
 
     if (!result.success) {
@@ -94,17 +94,17 @@ module.exports = {
       return;
     }
 
-    // Create embed
+    
     const embed = createServicesEmbed(services, current_page, last_page, total, userEmail, status);
 
-    // Create action buttons
+    
     const components = createActionButtons(services, current_page, last_page, guildId, userEmail, status);
 
     await interaction.editReply({ embeds: [embed], components });
   }
 };
 
-// Create services embed
+
 function createServicesEmbed(services, currentPage, lastPage, total, userEmail, status) {
   const embed = new EmbedBuilder()
     .setColor('#5865F2')
@@ -137,11 +137,11 @@ function createServicesEmbed(services, currentPage, lastPage, total, userEmail, 
   return embed;
 }
 
-// Create action buttons
+
 function createActionButtons(services, currentPage, lastPage, guildId, userEmail, status) {
   const components = [];
 
-  // Navigation buttons
+  
   if (lastPage > 1) {
     const navRow = new ActionRowBuilder();
 
@@ -171,7 +171,7 @@ function createActionButtons(services, currentPage, lastPage, guildId, userEmail
     components.push(navRow);
   }
 
-  // Service action select menu
+  
   if (services.length > 0) {
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId(`service_action_${guildId}`)
@@ -192,7 +192,7 @@ function createActionButtons(services, currentPage, lastPage, guildId, userEmail
   return components;
 }
 
-// Handle pagination
+
 module.exports.handlePagination = async (interaction) => {
   if (!interaction.customId.startsWith('services_')) return;
 
@@ -217,7 +217,7 @@ module.exports.handlePagination = async (interaction) => {
   if (action === 'next') page++;
   if (action === 'prev') page--;
   if (action === 'last') {
-    // Get last page from button
+    
     const lastPageMatch = interaction.customId.match(/services_last_(\d+)_/);
     if (lastPageMatch) page = parseInt(lastPageMatch[1]);
   }
@@ -250,19 +250,19 @@ module.exports.handlePagination = async (interaction) => {
   await interaction.editReply({ embeds: [embed], components });
 };
 
-// Handle service action selection
+
 module.exports.handleServiceAction = async (interaction) => {
   if (!interaction.customId.startsWith('service_action_')) return;
 
   const guildId = interaction.customId.split('_')[2];
   
-  // Safely parse the selected value
+  
   const selectedValue = interaction.values[0];
   const valueParts = selectedValue.split('_');
   const serviceId = valueParts[0];
-  const serviceStatus = valueParts.slice(1).join('_'); // Handle statuses with underscores
+  const serviceStatus = valueParts.slice(1).join('_'); 
 
-  // Fetch the full service details
+  
   const config = await getConfig(guildId);
   
   if (!config) {
@@ -285,7 +285,7 @@ module.exports.handleServiceAction = async (interaction) => {
 
   const service = serviceResult.data;
   
-  // Create service details embed
+  
   const serviceEmbed = new EmbedBuilder()
     .setColor('#5865F2')
     .setTitle('Service Details')
@@ -300,10 +300,10 @@ module.exports.handleServiceAction = async (interaction) => {
     )
     .setTimestamp();
 
-  // Create action buttons for the selected service
+  
   const actionRow = new ActionRowBuilder();
 
-  // Normalize status to lowercase for comparison
+  
   const normalizedStatus = serviceStatus.toLowerCase();
 
   if (normalizedStatus === 'active') {
@@ -399,7 +399,7 @@ module.exports.handleServiceAction = async (interaction) => {
     });
     return;
   } else {
-    // Fallback for any other status
+    
     actionRow.addComponents(
       new ButtonBuilder()
         .setCustomId('cancel_service_action')
@@ -422,7 +422,7 @@ module.exports.handleServiceAction = async (interaction) => {
   });
 };
 
-// Handle service actions (suspend, unsuspend, terminate, activate)
+
 module.exports.handleServiceActionButton = async (interaction) => {
   const customId = interaction.customId;
 
@@ -435,7 +435,7 @@ module.exports.handleServiceActionButton = async (interaction) => {
     return;
   }
 
-  // Handle change price button
+  
   if (customId.startsWith('change_price_')) {
     const parts = customId.split('_');
     const serviceId = parts[2];
@@ -492,7 +492,7 @@ module.exports.handleServiceActionButton = async (interaction) => {
   }
 
   const parts = customId.split('_');
-  const action = parts[0]; // suspend, unsuspend, terminate, activate
+  const action = parts[0]; 
   const serviceId = parts[2];
   const guildId = parts[3];
 
@@ -576,22 +576,22 @@ module.exports.handleServiceActionButton = async (interaction) => {
     await interaction.editReply({ content: '', embeds: [successEmbed], components: [] });
   }
 
-  // Wait 2 seconds to show success message, then refresh the service list
+  
   setTimeout(async () => {
-    // Fetch updated services list
+    
     const servicesResult = await getServices(config.api_url, config.api_key, 1, null, null);
 
     if (!servicesResult.success) {
-      return; // If refresh fails, just leave the success message
+      return; 
     }
 
     const { current_page, last_page, total, data: services } = servicesResult.data;
 
     if (services.length === 0) {
-      return; // If no services, leave success message
+      return; 
     }
 
-    // Create refreshed embed and components
+    
     const embed = createServicesEmbed(services, current_page, last_page, total, null, null);
     const components = createActionButtons(services, current_page, last_page, guildId, null, null);
 
@@ -599,11 +599,11 @@ module.exports.handleServiceActionButton = async (interaction) => {
   }, 2000);
 };
 
-// Handle modal submissions for price and due date changes
+
 module.exports.handleModalSubmit = async (interaction) => {
   const customId = interaction.customId;
 
-  // Handle price modal
+  
   if (customId.startsWith('price_modal_')) {
     await interaction.deferReply({ flags: 64 });
 
@@ -653,7 +653,7 @@ module.exports.handleModalSubmit = async (interaction) => {
 
     await interaction.editReply({ embeds: [successEmbed] });
 
-    // Refresh service list after 2 seconds
+    
     setTimeout(async () => {
       const servicesResult = await getServices(config.api_url, config.api_key, 1, null, null);
 
@@ -670,7 +670,7 @@ module.exports.handleModalSubmit = async (interaction) => {
     }, 2000);
   }
 
-  // Handle due date modal
+  
   if (customId.startsWith('due_date_modal_')) {
     await interaction.deferReply({ flags: 64 });
 
@@ -680,7 +680,7 @@ module.exports.handleModalSubmit = async (interaction) => {
 
     const newDueDate = interaction.fields.getTextInputValue('new_due_date');
 
-    // Validate and format date
+    
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(newDueDate)) {
       await interaction.editReply({ 
@@ -689,7 +689,7 @@ module.exports.handleModalSubmit = async (interaction) => {
       return;
     }
 
-    // Convert to ISO format
+    
     const isoDate = `${newDueDate}T23:59:59.000000Z`;
 
     const config = await getConfig(guildId);
@@ -731,7 +731,7 @@ module.exports.handleModalSubmit = async (interaction) => {
 
     await interaction.editReply({ embeds: [successEmbed] });
 
-    // Refresh service list after 2 seconds
+    
     setTimeout(async () => {
       const servicesResult = await getServices(config.api_url, config.api_key, 1, null, null);
 
@@ -749,7 +749,7 @@ module.exports.handleModalSubmit = async (interaction) => {
   }
 };
 
-// API Functions
+
 async function getServices(apiUrl, apiKey, page = 1, userEmail = null, status = null) {
   try {
     const params = new URLSearchParams({
@@ -1112,7 +1112,7 @@ async function deleteService(apiUrl, apiKey, serviceId) {
   }
 }
 
-// Helper function to get status emoji
+
 function getStatusEmoji(status) {
   const emojis = {
     active: '✅',

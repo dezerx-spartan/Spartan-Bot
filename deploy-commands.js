@@ -25,8 +25,8 @@ const commands = [];
 for (const file of commandFiles) {
   const command = require(file);
   
-  // Only add commands that have a data property (slash commands)
-  // Skip helper modules or commands without slash command data
+  
+  
   if (command.data) {
     commands.push(command.data.toJSON());
     console.log(`✅ Loaded command: ${command.name}`);

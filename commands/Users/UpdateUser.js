@@ -19,7 +19,7 @@ module.exports = {
     const discordId = interaction.user.id;
     const identifier = interaction.options.getString('identifier');
 
-    // Check if user is admin
+    
     const { isUserAdmin } = require('./SyncDiscord.js');
     const isAdmin = await isUserAdmin(guildId, discordId);
 
@@ -38,7 +38,7 @@ module.exports = {
       return;
     }
 
-    // Get API configuration
+    
     const config = await getConfig(guildId);
 
     if (!config) {
@@ -52,7 +52,7 @@ module.exports = {
       return;
     }
 
-    // Search for user
+    
     const userResult = await findUser(config.api_url, config.api_key, identifier);
 
     if (!userResult.success) {
@@ -69,7 +69,7 @@ module.exports = {
 
     const user = userResult.user;
 
-    // Create embed showing current user info
+    
     const embed = new EmbedBuilder()
       .setColor('#5865F2')
       .setTitle('👤 User Found')
@@ -85,7 +85,7 @@ module.exports = {
       .setTimestamp()
       .setFooter({ text: 'Click the button to edit this user' });
 
-    // Create edit button
+    
     const editButton = new ButtonBuilder()
       .setCustomId(`edit_user_${user.id}_${guildId}`)
       .setLabel('✏️ Edit User')
@@ -97,13 +97,13 @@ module.exports = {
   }
 };
 
-// Handle edit button click
+
 module.exports.handleEditButton = async (interaction) => {
   if (!interaction.customId.startsWith('edit_user_')) return;
 
   const [, , userId, guildId] = interaction.customId.split('_');
 
-  // Get API configuration
+  
   const config = await getConfig(guildId);
 
   if (!config) {
@@ -114,7 +114,7 @@ module.exports.handleEditButton = async (interaction) => {
     return;
   }
 
-  // Fetch fresh user data
+  
   const userResult = await getUserById(config.api_url, config.api_key, userId);
 
   if (!userResult.success) {
@@ -127,7 +127,7 @@ module.exports.handleEditButton = async (interaction) => {
 
   const user = userResult.user;
 
-  // Show modal with current user data
+  
   const modal = new ModalBuilder()
     .setCustomId(`update_user_modal_${userId}_${guildId}`)
     .setTitle(`Update User: ${user.name}`);
@@ -181,7 +181,7 @@ module.exports.handleEditButton = async (interaction) => {
   await interaction.showModal(modal);
 };
 
-// Handle modal submission
+
 module.exports.handleModalSubmit = async (interaction) => {
   if (!interaction.customId.startsWith('update_user_modal_')) return;
 
@@ -195,7 +195,7 @@ module.exports.handleModalSubmit = async (interaction) => {
   const password = interaction.fields.getTextInputValue('password_input').trim();
   const notes = interaction.fields.getTextInputValue('notes_input').trim();
 
-  // Get API configuration
+  
   const config = await getConfig(guildId);
 
   if (!config) {
@@ -209,14 +209,14 @@ module.exports.handleModalSubmit = async (interaction) => {
     return;
   }
 
-  // Build update payload
+  
   const updateData = {};
   if (name) updateData.name = name;
   if (email) updateData.email = email;
   if (role) updateData.role = role;
   if (password) updateData.password = password;
 
-  // Update user
+  
   const result = await updateUser(config.api_url, config.api_key, userId, updateData);
 
   if (!result.success) {
@@ -233,7 +233,7 @@ module.exports.handleModalSubmit = async (interaction) => {
 
   const updatedUser = result.data;
 
-  // Success embed
+  
   const successEmbed = new EmbedBuilder()
     .setColor('#00ff00')
     .setTitle('✅ User Updated Successfully')
@@ -259,15 +259,15 @@ module.exports.handleModalSubmit = async (interaction) => {
   await interaction.editReply({ embeds: [successEmbed] });
 };
 
-// Find user by ID or email
+
 async function findUser(apiUrl, apiKey, identifier) {
   try {
-    // Check if identifier is a number (user ID)
+    
     if (!isNaN(identifier)) {
       return await getUserById(apiUrl, apiKey, identifier);
     }
 
-    // Otherwise search by email
+    
     const params = new URLSearchParams({
       search: identifier,
       per_page: '100'
@@ -297,7 +297,7 @@ async function findUser(apiUrl, apiKey, identifier) {
       };
     }
 
-    // Find exact match
+    
     const user = data.data.data.find(u => u.email.toLowerCase() === identifier.toLowerCase());
 
     if (!user) {
@@ -319,7 +319,7 @@ async function findUser(apiUrl, apiKey, identifier) {
   }
 }
 
-// Get user by ID
+
 async function getUserById(apiUrl, apiKey, userId) {
   try {
     const response = await fetch(`${apiUrl}/api/application/users/${userId}`, {
@@ -358,7 +358,7 @@ async function getUserById(apiUrl, apiKey, userId) {
   }
 }
 
-// Update user
+
 async function updateUser(apiUrl, apiKey, userId, updateData) {
   try {
     const response = await fetch(`${apiUrl}/api/application/users/${userId}`, {

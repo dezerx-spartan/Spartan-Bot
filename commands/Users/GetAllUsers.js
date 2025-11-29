@@ -18,9 +18,9 @@ module.exports = {
     const guildId = interaction.guildId;
     const discordId = interaction.user.id;
     const search = interaction.options.getString('search') || '';
-    const perPage = 4; // Fixed at 4 users per page
+    const perPage = 4; 
 
-    // Check if user is admin
+    
     const { isUserAdmin } = require('./SyncDiscord.js');
     const isAdmin = await isUserAdmin(guildId, discordId);
 
@@ -39,7 +39,7 @@ module.exports = {
       return;
     }
 
-    // Get API configuration
+    
     const config = await getConfig(guildId);
 
     if (!config) {
@@ -53,7 +53,7 @@ module.exports = {
       return;
     }
 
-    // Fetch users from API
+    
     const result = await fetchUsers(config.api_url, config.api_key, 1, perPage, search);
 
     if (!result.success) {
@@ -68,14 +68,14 @@ module.exports = {
       return;
     }
 
-    // Create embed and pagination buttons
+    
     const { embed, components } = createUserEmbed(result.data, search, perPage, guildId, false);
 
     await interaction.editReply({ embeds: [embed], components });
   }
 };
 
-// Handle pagination and show all button clicks
+
 module.exports.handlePagination = async (interaction) => {
   if (!interaction.customId.startsWith('users_')) return;
 
@@ -87,30 +87,30 @@ module.exports.handlePagination = async (interaction) => {
   if (interaction.customId.startsWith('users_showall_')) {
     const [, , guildIdFromButton, search] = interaction.customId.split('_');
     currentPage = 1;
-    itemsPerPage = 100; // Max allowed by API
+    itemsPerPage = 100; 
     searchQuery = search === 'none' ? '' : decodeURIComponent(search);
     showAll = true;
   } else {
-    // Parse button type (first, prev, next, last, page)
+    
     const parts = interaction.customId.split('_');
-    const buttonType = parts[1]; // first, prev, next, last, or page
+    const buttonType = parts[1]; 
     
     let targetPage;
     let perPage;
     let search;
     
     if (buttonType === 'first') {
-      // users_first_4_guildId_search
+      
       targetPage = 1;
       perPage = parts[2];
       search = parts[4];
     } else if (buttonType === 'last') {
-      // users_last_4_guildId_search - need to fetch to get last page
+      
       perPage = parts[2];
       search = parts[4];
       searchQuery = search === 'none' ? '' : decodeURIComponent(search);
       
-      // Fetch first page to get total pages
+      
       const config = await getConfig(guildId);
       if (!config) {
         const errorEmbed = new EmbedBuilder()
@@ -136,19 +136,19 @@ module.exports.handlePagination = async (interaction) => {
       
       targetPage = tempResult.data.last_page;
     } else if (buttonType === 'prev') {
-      // users_prev_2_4_guildId_search
+      
       const currentPageNum = parseInt(parts[2]);
       targetPage = currentPageNum - 1;
       perPage = parts[3];
       search = parts[5];
     } else if (buttonType === 'next') {
-      // users_next_1_4_guildId_search
+      
       const currentPageNum = parseInt(parts[2]);
       targetPage = currentPageNum + 1;
       perPage = parts[3];
       search = parts[5];
     } else {
-      // users_page_1_4_guildId_search (fallback for old format)
+      
       targetPage = parseInt(parts[2]);
       perPage = parts[3];
       search = parts[5];
@@ -160,7 +160,7 @@ module.exports.handlePagination = async (interaction) => {
     showAll = false;
   }
 
-  // Get API configuration
+  
   const config = await getConfig(guildId);
 
   if (!config) {
@@ -174,7 +174,7 @@ module.exports.handlePagination = async (interaction) => {
     return;
   }
 
-  // Fetch users for the requested page
+  
   const result = await fetchUsers(config.api_url, config.api_key, currentPage, itemsPerPage, searchQuery);
 
   if (!result.success) {
@@ -189,13 +189,13 @@ module.exports.handlePagination = async (interaction) => {
     return;
   }
 
-  // Update embed with new page
+  
   const { embed, components } = createUserEmbed(result.data, searchQuery, itemsPerPage, guildId, showAll);
 
   await interaction.editReply({ embeds: [embed], components });
 };
 
-// Fetch users from API
+
 async function fetchUsers(apiUrl, apiKey, page, perPage, search) {
   try {
     const params = new URLSearchParams({
@@ -243,7 +243,7 @@ async function fetchUsers(apiUrl, apiKey, page, perPage, search) {
   }
 }
 
-// Create user embed with pagination
+
 function createUserEmbed(data, search, perPage, guildId, showAll) {
   const { current_page, last_page, total, from, to } = data;
   const users = data.data;
@@ -253,7 +253,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
     .setTitle('👥 Spartan Users')
     .setTimestamp();
 
-  // Add search info if searching
+  
   if (search) {
     embed.setDescription(`🔍 **Search Results for:** \`${search}\``);
   }
@@ -265,7 +265,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
     });
     embed.setFooter({ text: `Total: 0 users` });
   } else {
-    // Add user fields with better formatting
+    
     users.forEach((user) => {
       const roleEmoji = user.admin_role?.name === 'superadmin' ? '⭐' :
                         user.admin_role?.name === 'admin' ? '👑' : 
@@ -289,7 +289,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
       });
     });
 
-    // Set footer based on view mode
+    
     if (showAll) {
       embed.setFooter({ text: `Showing all ${total} users` });
     } else {
@@ -299,7 +299,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
     }
   }
 
-  // Create pagination buttons
+  
   const components = [];
   
   if (users.length > 0 && !showAll && last_page > 1) {
@@ -352,7 +352,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
     components.push(row1);
   }
 
-  // Add "Show All" button if not already showing all and there are users
+  
   if (users.length > 0 && !showAll) {
     const searchParam = search ? encodeURIComponent(search) : 'none';
     
@@ -362,7 +362,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
       .setEmoji('📋')
       .setStyle(ButtonStyle.Success);
 
-    // If there's pagination, add to second row, otherwise first row
+    
     if (components.length > 0) {
       const row2 = new ActionRowBuilder().addComponents(showAllButton);
       components.push(row2);
@@ -372,7 +372,7 @@ function createUserEmbed(data, search, perPage, guildId, showAll) {
     }
   }
 
-  // Add "Back to Paginated" button if showing all
+  
   if (showAll) {
     const searchParam = search ? encodeURIComponent(search) : 'none';
     

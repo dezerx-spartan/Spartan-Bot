@@ -3,18 +3,18 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Ensure data directory exists
+
 const dataDir = path.join(__dirname, '../data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Initialize SQLite database
+
 const db = new sqlite3.Database(path.join(dataDir, 'config.db'), (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    // Create config table if it doesn't exist
+    
     db.run(`CREATE TABLE IF NOT EXISTS spartan_config (
       guild_id TEXT PRIMARY KEY,
       api_key TEXT NOT NULL,
@@ -35,17 +35,17 @@ module.exports = {
     const guildId = interaction.guildId;
     const discordId = interaction.user.id;
 
-    // Check if there's already a configuration
+    
     const existingConfig = await getConfig(guildId);
 
     let isAdmin = false;
 
     if (existingConfig) {
-      // If config exists, check Spartan admin roles
+      
       const { isUserAdmin } = require('./Users/SyncDiscord.js');
       isAdmin = await isUserAdmin(guildId, discordId);
     } else {
-      // If no config, check Discord Administrator permission as fallback
+      
       const member = await interaction.guild.members.fetch(discordId);
       isAdmin = member.permissions.has(PermissionFlagsBits.Administrator);
     }
@@ -67,7 +67,7 @@ module.exports = {
       return;
     }
 
-    // Show modal for API configuration
+    
     const modal = new ModalBuilder()
       .setCustomId('spartan_config_modal')
       .setTitle('Spartan API Configuration');
@@ -96,7 +96,7 @@ module.exports = {
   }
 };
 
-// Handle modal submission
+
 module.exports.handleModalSubmit = async (interaction) => {
   if (interaction.customId !== 'spartan_config_modal') return;
 
@@ -104,7 +104,7 @@ module.exports.handleModalSubmit = async (interaction) => {
   const apiUrl = interaction.fields.getTextInputValue('api_url_input');
   const guildId = interaction.guildId;
 
-  // Create embed with configuration
+  
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle('⚙️ Spartan API Configuration')
@@ -117,7 +117,7 @@ module.exports.handleModalSubmit = async (interaction) => {
     .setTimestamp()
     .setFooter({ text: 'Click "Test Connection" to verify credentials' });
 
-  // Create test button
+  
   const testButton = new ButtonBuilder()
     .setCustomId(`test_connection_${guildId}_${Date.now()}`)
     .setLabel('🔌 Test Connection')
@@ -125,15 +125,15 @@ module.exports.handleModalSubmit = async (interaction) => {
 
   const row = new ActionRowBuilder().addComponents(testButton);
 
-  // Save to database (will be marked as verified after test)
+  
   await saveConfig(guildId, apiKey, apiUrl);
 
-  // Store credentials temporarily in the button's custom ID or use a cache
-  // For security, we'll retrieve from DB when button is clicked
+  
+  
   await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
 };
 
-// Handle test connection button
+
 module.exports.handleTestConnection = async (interaction) => {
   if (!interaction.customId.startsWith('test_connection_')) return;
 
@@ -141,7 +141,7 @@ module.exports.handleTestConnection = async (interaction) => {
 
   const guildId = interaction.guildId;
 
-  // Retrieve credentials from database
+  
   const config = await getConfig(guildId);
 
   if (!config) {
@@ -155,7 +155,7 @@ module.exports.handleTestConnection = async (interaction) => {
     return;
   }
 
-  // Test API connection
+  
   const testResult = await testApiConnection(config.api_url, config.api_key);
 
   if (testResult.success) {
@@ -199,7 +199,7 @@ module.exports.handleTestConnection = async (interaction) => {
   }
 };
 
-// Database helper functions
+
 function saveConfig(guildId, apiKey, apiUrl) {
   return new Promise((resolve, reject) => {
     db.run(
@@ -231,7 +231,7 @@ function getConfig(guildId) {
   });
 }
 
-// Test API connection
+
 async function testApiConnection(apiUrl, apiKey) {
   const startTime = Date.now();
 
@@ -279,5 +279,5 @@ async function testApiConnection(apiUrl, apiKey) {
   }
 }
 
-// Export helper to get config for other commands
+
 module.exports.getConfig = getConfig;

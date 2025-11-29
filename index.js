@@ -40,9 +40,9 @@ client.on('clientReady', () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-// Handle slash commands
+
 client.on('interactionCreate', async interaction => {
-  // Handle slash commands
+  
   if (interaction.isChatInputCommand()) {
     const command = client.commands.get(interaction.commandName);
 
@@ -60,7 +60,7 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
-  // Handle modal submissions
+  
   if (interaction.isModalSubmit()) {
     if (interaction.customId === 'spartan_config_modal') {
       const linkCommand = client.commands.get('link');
@@ -86,7 +86,7 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // Handle service price and due date modals
+    
     if (interaction.customId.startsWith('price_modal_') || interaction.customId.startsWith('due_date_modal_')) {
       const manageServicesCommand = client.commands.get('manageservices');
       if (manageServicesCommand && manageServicesCommand.handleModalSubmit) {
@@ -100,7 +100,7 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
-  // Handle select menu interactions
+  
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId.startsWith('service_action_')) {
       const manageServicesCommand = client.commands.get('manageservices');
@@ -115,9 +115,9 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
-  // Handle button interactions
+  
   if (interaction.isButton()) {
-    // Test connection button
+    
     if (interaction.customId.startsWith('test_connection_')) {
       const linkCommand = client.commands.get('link');
       if (linkCommand && linkCommand.handleTestConnection) {
@@ -130,7 +130,7 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // Users pagination buttons
+    
     if (interaction.customId.startsWith('users_')) {
       const usersCommand = client.commands.get('users');
       if (usersCommand && usersCommand.handlePagination) {
@@ -143,7 +143,7 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // Services pagination buttons
+    
     if (interaction.customId.startsWith('services_')) {
       const manageServicesCommand = client.commands.get('manageservices');
       if (manageServicesCommand && manageServicesCommand.handlePagination) {
@@ -156,7 +156,7 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // Edit user button
+    
     if (interaction.customId.startsWith('edit_user_')) {
       const updateUserCommand = client.commands.get('updateuser');
       if (updateUserCommand && updateUserCommand.handleEditButton) {
@@ -169,7 +169,7 @@ client.on('interactionCreate', async interaction => {
       }
     }
 
-    // Service action buttons (suspend, unsuspend, terminate, activate, delete, change_price, change_due_date)
+    
     if (interaction.customId.startsWith('suspend_service_') ||
         interaction.customId.startsWith('unsuspend_service_') ||
         interaction.customId.startsWith('terminate_service_') ||
